@@ -1,0 +1,194 @@
+﻿@model List<ProjectDTO>
+@{
+    Layout = "_AdminLayout";
+}
+<link href="~/assets/css/main.css" rel="stylesheet" />
+<script src="~/assets/js/jquery-3.4.1.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<style>
+    .gallery {
+        display: flex;
+        align-items: center;
+        flex-direction: column;
+        position: relative;
+        padding-top: 60px;
+    }
+
+       
+
+    .resizer {
+        position: absolute;
+        top: 0;
+        width: calc(100% - 45px);
+        height: 36px;
+        overflow: hidden;
+        text-align: center;
+        color: #fff;
+        line-height: 38px;
+        font-weight: 500;
+        letter-spacing: 1px;
+        animation: letter-s 2s ease 0s 3 alternate, hide-s 2s ease 6s 1;
+        animation-fill-mode: backwards, forwards;
+        opacity: 0.5;
+    }
+
+    .pagination {
+        text-align: center;
+    }
+
+        .pagination ul {
+            padding: 0 0px;
+            margin: 10px 0 0;
+            background: #fff2;
+            border-radius: 10px;
+        }
+
+            .pagination ul li {
+                display: inline;
+                display: inline-flex;
+                margin: 5px;
+                color: #fff;
+            }
+
+        .pagination li a {
+            padding: 10px;
+            background: #fffd;
+            color: var(--c2);
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .pagination li.page_link a:hover {
+            background: var(--c2);
+            color: #fff;
+        }
+
+        .pagination li.active_page a {
+            background: var(--c2);
+            color: #fff;
+        }
+
+        .pagination li > span {
+            font-weight: bold;
+            font-size: 15px;
+            top: -4px;
+            position: relative;
+        }
+
+        .pagination li a span {
+            min-width: 20px;
+            display: inline-block;
+        }
+
+        .pagination li.page_link.active_page.active a {
+            cursor: default;
+        }
+
+    li.previous_link a, li.next_link a,
+    li.first_link a, li.last_link a {
+        background: #fff0;
+        /* border: 2px solid #fff; */
+        color: #fff0;
+        display: block;
+        padding: 10px 12px;
+    }
+
+        li.previous_link a:before, li.next_link a:before,
+        li.first_link a:before, li.last_link a:before {
+            content: "";
+            border: 2px solid #fff;
+            width: 12px;
+            height: 12px;
+            display: block;
+            position: absolute;
+            border-width: 3px 0 0 3px;
+            transform: rotate(-45deg);
+            margin-top: 3px;
+            margin-left: 3px;
+            border-radius: 2px;
+        }
+
+        li.next_link a:before,
+        li.last_link a:before {
+            transform: rotate(135deg);
+            margin-left: -3px;
+        }
+
+        li.first_link a:before, li.last_link a:before {
+            filter: drop-shadow(5px 5px 0 #fff);
+            margin-left: 0px;
+        }
+
+        li.previous_link a:hover, li.next_link a:hover,
+        li.first_link a:hover, li.last_link a:hover {
+            background: var(--c2);
+            border-color: var(--c2);
+        }
+
+    li.no_more.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+    }
+
+    li.page_link.first.active_page.active a {
+        cursor: default;
+    }
+</style>
+<section class="project_section" >
+    <div id="data-container">
+        <div class="products" style="background:none;">
+            <div class="container">
+                <h1 class="lg-title">Projeleriniz</h1>
+
+                <div class="product-items">
+        @foreach (var item in Model)
+        {
+            <div class="item" id=@item.Id style="margin-right:15px;">
+                <div class="box">
+                    <div class="img-box">
+                        <embed src=@item.ProjectImage style="height:250px; width:100%;" loop="0" autostart="true">
+                        @*<img src=@item.ProjectImage alt="" />*@
+                    </div>
+                    <div class="detail-box">
+                        <h5>
+                            @item.ProjectTitle
+                        </h5>
+                        <p>
+                            @item.ProjectDetail
+                        </p>
+                    </div>
+                    </div>
+                            <button class="btn btn-outline-danger" id="btn1">@Html.ActionLink("Sil", "DeleteProject",new{id=item.Id}, new { @class="btn btn-warning", onclick = "return confirm('Silmek istediğinizden emin misiniz?')"})</button>
+                            <a class="btn btn-outline-warning" href="@Url.Action("GetUpdateProjeIndex" , "Projects" , new {Id=item.Id,ProjectTitle=item.ProjectTitle,ProjectDetail=item.ProjectDetail,ProjectImage=item.ProjectImage})">Güncelle</a>
+
+                        </div> <br />
+               
+        }
+                </div><br/>
+                <a class="btn btn-outline-danger" href="@Url.Action("GetAllProjectIndex", "Projects",  new{PageNumber=(@ViewBag.PageNumber>1?@ViewBag.PageNumber-1:@ViewBag.PageNumber)})">Previous</a>
+                <a class="btn btn-outline-danger" href="@Url.Action("GetAllProjectIndex", "Projects",  new{PageNumber=(Model.Count==@ViewBag.screenSize?@ViewBag.PageNumber+1:@ViewBag.PageNumber)})">Next</a>
+            </div>
+        </div>
+        <input style="display:none;" id="bag" value="@ViewBag.Message" />
+    </div>
+</section>
+<script>
+    var data = document.getElementById("bag").value;
+    console.log("DATA " + data);
+    if (data == "Başarılı") {
+        swal("Proje Silindi!", {
+            icon: "success",
+            button: "Tamam!",
+        });
+    } else if (data == "Başarısız") {
+        swal("Hata Oluştu daha sonra tekrar deneyin!", {
+            icon: "error",
+            button: "Tamam!",
+        });
+    } else if (data == "UpdateBaşarılı") {
+        swal("Güncelleme işleminiz başarı!", {
+            icon: "success",
+            button: "Tamam!",
+        });
+    }
+</script>
